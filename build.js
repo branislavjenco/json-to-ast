@@ -1038,10 +1038,7 @@
 	  const value = parseValue(input, tokenList, 0, settings);
 
 	  if (value.index === tokenList.length) {
-	    return {
-	      ast: value.value,
-	      tokens: tokenList
-	    };
+	    return value.value;
 	  }
 
 	  const token = tokenList[value.index];
