@@ -1019,19 +1019,17 @@
 	  error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	});
 
-	const parseWithContext = (input, offset, settings) => {
+	const parseTokens = (tokens, settings) => {
 	  const defaultSettings = {
 	    loc: true,
 	    source: null
 	  };
 	  settings = Object.assign({}, defaultSettings, settings);
-	  let tokenList = tokenize(input, settings);
 
 	  if (tokenList.length === 0) {
 	    errorEof$1(input, tokenList, settings);
 	  }
 
-	  const cleanedTokenList = removePreceedingCommaIfExists(tokenList, offset);
 	  const value = parseValue(input, cleanedTokenList, 0, settings);
 
 	  if (value.index === tokenList.length) {
@@ -1053,25 +1051,10 @@
 	  error(parseErrorTypes.unexpectedEnd(), input, settings.source, loc.line, loc.column);
 	}
 
-	function removePreceedingCommaIfExists(tokens, offset) {
-	  let previousTokenIndex;
-
-	  for (let i = 0; i < tokens.length; i++) {
-	    if (tokens[i - 1] && offset >= tokens[i - 1].loc.end.offset && offset <= tokens[i].loc.end.offset) {
-	      previousTokenIndex = i - 1;
-	    }
-	  }
-
-	  if (tokens[previousTokenIndex].type === tokenTypes.COMMA) {
-	    tokens.splice(previousTokenIndex, 1);
-	  }
-
-	  return tokens;
-	}
-
 	exports.default = parse;
+	exports.tokenize = tokenize;
 	exports.tokenTypes = tokenTypes;
-	exports.parseWithContext = parseWithContext;
+	exports.parseTokens = parseTokens;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

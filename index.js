@@ -1,4 +1,4 @@
 import parse from "./lib/parse";
-export { tokenTypes } from "./lib/tokenize";
-export { parseWithContext } from "./lib/parseWithContext";
+export { tokenize, tokenTypes } from "./lib/tokenize";
+export { parseTokens } from "./lib/parseTokens";
 export default parse;
