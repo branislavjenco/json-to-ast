@@ -627,7 +627,7 @@
 	  source: null
 	};
 
-	function errorEof$1(input, tokenList, settings) {
+	function errorEof(input, tokenList, settings) {
 	  const loc = tokenList.length > 0 ? tokenList[tokenList.length - 1].loc.end : {
 	    line: 1,
 	    column: 1
@@ -775,7 +775,7 @@
 	    }
 	  }
 
-	  errorEof$1(input, tokenList, settings);
+	  errorEof(input, tokenList, settings);
 	}
 
 	function parseProperty(input, tokenList, index, settings) {
@@ -926,7 +926,7 @@
 	    }
 	  }
 
-	  errorEof$1(input, tokenList, settings);
+	  errorEof(input, tokenList, settings);
 	}
 
 	function parseLiteral(input, tokenList, index, settings) {
@@ -1003,7 +1003,7 @@
 	  const tokenList = tokenize(input, settings);
 
 	  if (tokenList.length === 0) {
-	    errorEof$1(input, tokenList, settings);
+	    errorEof(input, tokenList, settings);
 	  }
 
 	  const value = parseValue(input, tokenList, 0, settings);
@@ -1028,7 +1028,7 @@
 	  let tokenList = tokenize(input, settings);
 
 	  if (tokenList.length === 0) {
-	    errorEof(input, tokenList, settings);
+	    errorEof$1(input, tokenList, settings);
 	  }
 
 	  tokenList = removePreceedingCommaIfExists(tokenList, offset);
@@ -1045,8 +1045,15 @@
 	  error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	};
 
+	function errorEof$1(input, tokenList, settings) {
+	  const loc = tokenList.length > 0 ? tokenList[tokenList.length - 1].loc.end : {
+	    line: 1,
+	    column: 1
+	  };
+	  error(parseErrorTypes.unexpectedEnd(), input, settings.source, loc.line, loc.column);
+	}
+
 	function removePreceedingCommaIfExists(tokens, offset) {
-	  console.lot(tokens);
 	  let previousTokenIndex;
 
 	  for (let i = 0; i < tokens.length; i++) {
@@ -1059,7 +1066,6 @@
 	    tokens.splice(previousTokenIndex, 1);
 	  }
 
-	  console.log(tokens);
 	  return tokens;
 	}
 
