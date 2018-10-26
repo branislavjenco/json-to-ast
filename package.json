@@ -34,8 +34,7 @@
     "watch": "rollup -c -w",
     "pretest": "npm run build",
     "test": "mocha",
-    "prepublishOnly": "npm run build",
-    "postinstall": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
