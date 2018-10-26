@@ -1031,8 +1031,8 @@
 	    errorEof$1(input, tokenList, settings);
 	  }
 
-	  tokenList = removePreceedingCommaIfExists(tokenList, offset);
-	  const value = parseValue(input, tokenList, 0, settings);
+	  cleanedTokenList = removePreceedingCommaIfExists(tokenList, offset);
+	  const value = parseValue(input, cleanedTokenList, 0, settings);
 
 	  if (value.index === tokenList.length) {
 	    return {
