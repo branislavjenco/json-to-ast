@@ -569,6 +569,11 @@
 	}
 
 	function tokenize(input, settings) {
+	  const defaultSettings = {
+	    loc: true,
+	    source: null
+	  };
+	  settings = Object.assign({}, defaultSettings, settings);
 	  let line = 1;
 	  let column = 1;
 	  let index = 0;
@@ -1019,7 +1024,7 @@
 	  error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	});
 
-	const parseTokens = (tokens, settings) => {
+	const parseTokens = (input, tokenList, settings) => {
 	  const defaultSettings = {
 	    loc: true,
 	    source: null
@@ -1030,7 +1035,7 @@
 	    errorEof$1(input, tokenList, settings);
 	  }
 
-	  const value = parseValue(input, cleanedTokenList, 0, settings);
+	  const value = parseValue(input, tokenList, 0, settings);
 
 	  if (value.index === tokenList.length) {
 	    return {
