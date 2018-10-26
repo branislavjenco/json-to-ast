@@ -188,7 +188,7 @@
 	  return error;
 	});
 
-	var error$1 = ((message, input, source, line, column) => {
+	var error = ((message, input, source, line, column) => {
 	  throw createError({
 	    message: line ? message + '\n' + build(input, line, column) : message,
 	    rawMessage: message,
@@ -198,7 +198,7 @@
 	  });
 	});
 
-	var parseErrorTypes$1 = {
+	var parseErrorTypes = {
 	  unexpectedEnd: () => 'Unexpected end of input',
 	  unexpectedToken: (token, ...position) => `Unexpected token <${token}> at ${position.filter(Boolean).join(':')}`
 	};
@@ -598,7 +598,7 @@
 	      line = matched.line;
 	      column = matched.column;
 	    } else {
-	      error$1(tokenizeErrorTypes.unexpectedSymbol(input.charAt(index), settings.source, line, column), input, settings.source, line, column);
+	      error(tokenizeErrorTypes.unexpectedSymbol(input.charAt(index), settings.source, line, column), input, settings.source, line, column);
 	    }
 	  }
 
@@ -622,7 +622,7 @@
 	  VALUE: 2,
 	  COMMA: 3
 	};
-	const defaultSettings$1 = {
+	const defaultSettings = {
 	  loc: true,
 	  source: null
 	};
@@ -632,7 +632,7 @@
 	    line: 1,
 	    column: 1
 	  };
-	  error$1(parseErrorTypes$1.unexpectedEnd(), input, settings.source, loc.line, loc.column);
+	  error(parseErrorTypes.unexpectedEnd(), input, settings.source, loc.line, loc.column);
 	}
 	/** @param hexCode {string} hexCode without '\u' prefix */
 
@@ -648,31 +648,31 @@
 	}
 
 	const escapes$1 = {
-	  b: "\b",
+	  'b': '\b',
 	  // Backspace
-	  f: "\f",
+	  'f': '\f',
 	  // Form feed
-	  n: "\n",
+	  'n': '\n',
 	  // New line
-	  r: "\r",
+	  'r': '\r',
 	  // Carriage return
-	  t: "\t" // Horizontal tab
+	  't': '\t' // Horizontal tab
 
 	};
-	const passEscapes = ['"', "\\", "/"];
+	const passEscapes = ['"', '\\', '/'];
 	/** @param {string} string */
 
 	function parseString$1(string) {
-	  let result = "";
+	  let result = '';
 
 	  for (let i = 0; i < string.length; i++) {
 	    const char = string.charAt(i);
 
-	    if (char === "\\") {
+	    if (char === '\\') {
 	      i++;
 	      const nextChar = string.charAt(i);
 
-	      if (nextChar === "u") {
+	      if (nextChar === 'u') {
 	        result += parseHexEscape(string.substr(i + 1, 4));
 	        i += 4;
 	      } else if (passEscapes.indexOf(nextChar) !== -1) {
@@ -694,7 +694,7 @@
 	  // object: LEFT_BRACE (property (COMMA property)*)? RIGHT_BRACE
 	  let startToken;
 	  const object = {
-	    type: "Object",
+	    type: 'Object',
 	    children: []
 	  };
 	  let state = objectStates._START_;
@@ -752,7 +752,7 @@
 	            state = objectStates.COMMA;
 	            index++;
 	          } else {
-	            error$1(parseErrorTypes$1.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
+	            error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	          }
 
 	          break;
@@ -767,7 +767,7 @@
 	            object.children.push(property.value);
 	            state = objectStates.PROPERTY;
 	          } else {
-	            error$1(parseErrorTypes$1.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
+	            error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	          }
 
 	          break;
@@ -782,7 +782,7 @@
 	  // property: STRING COLON value
 	  let startToken;
 	  const property = {
-	    type: "Property",
+	    type: 'Property',
 	    key: null,
 	    value: null
 	  };
@@ -796,7 +796,7 @@
 	        {
 	          if (token.type === tokenTypes.STRING) {
 	            const key = {
-	              type: "Identifier",
+	              type: 'Identifier',
 	              value: parseString$1(input.slice(token.loc.start.offset + 1, token.loc.end.offset - 1)),
 	              raw: token.value
 	            };
@@ -822,7 +822,7 @@
 	            state = propertyStates.COLON;
 	            index++;
 	          } else {
-	            error$1(parseErrorTypes$1.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
+	            error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	          }
 
 	          break;
@@ -850,7 +850,7 @@
 	  // array: LEFT_BRACKET (value (COMMA value)*)? RIGHT_BRACKET
 	  let startToken;
 	  const array = {
-	    type: "Array",
+	    type: 'Array',
 	    children: []
 	  };
 	  let state = arrayStates._START_;
@@ -909,7 +909,7 @@
 	            state = arrayStates.COMMA;
 	            index++;
 	          } else {
-	            error$1(parseErrorTypes$1.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
+	            error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	          }
 
 	          break;
@@ -972,7 +972,7 @@
 	  }
 
 	  const literal = {
-	    type: "Literal",
+	    type: 'Literal',
 	    value,
 	    raw: token.value
 	  };
@@ -995,11 +995,11 @@
 	  if (value) {
 	    return value;
 	  } else {
-	    error$1(parseErrorTypes$1.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
+	    error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	  }
 	}
 	var parse = ((input, settings) => {
-	  settings = Object.assign({}, defaultSettings$1, settings);
+	  settings = Object.assign({}, defaultSettings, settings);
 	  const tokenList = tokenize(input, settings);
 
 	  if (tokenList.length === 0) {
@@ -1016,12 +1016,16 @@
 	  }
 
 	  const token = tokenList[value.index];
-	  error$1(parseErrorTypes$1.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
+	  error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	});
 
 	const parseWithContext = (input, offset, settings) => {
+	  const defaultSettings = {
+	    loc: true,
+	    source: null
+	  };
 	  settings = Object.assign({}, defaultSettings, settings);
-	  const tokenList = tokenize(input, settings);
+	  let tokenList = tokenize(input, settings);
 
 	  if (tokenList.length === 0) {
 	    errorEof(input, tokenList, settings);
