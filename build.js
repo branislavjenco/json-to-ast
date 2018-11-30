@@ -4,19 +4,21 @@
 	(factory((global.jsonToAst = {})));
 }(this, (function (exports) { 'use strict';
 
-	var location = ((startLine, startColumn, startOffset, endLine, endColumn, endOffset, source) => ({
-	  start: {
-	    line: startLine,
-	    column: startColumn,
-	    offset: startOffset
-	  },
-	  end: {
-	    line: endLine,
-	    column: endColumn,
-	    offset: endOffset
-	  },
-	  source: source || null
-	}));
+	var location = (function (startLine, startColumn, startOffset, endLine, endColumn, endOffset, source) {
+	  return {
+	    start: {
+	      line: startLine,
+	      column: startColumn,
+	      offset: startOffset
+	    },
+	    end: {
+	      line: endLine,
+	      column: endColumn,
+	      offset: endOffset
+	    },
+	    source: source || null
+	  };
+	});
 
 	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -171,43 +173,56 @@
 	  });
 	});
 
-	const errorStack = new Error().stack;
-	var createError = (props => {
+	var errorStack = new Error().stack;
+	var createError = (function (props) {
 	  // use Object.create(), because some VMs prevent setting line/column otherwise
 	  // (iOS Safari 10 even throws an exception)
-	  const error = Object.create(SyntaxError.prototype);
+	  var error = Object.create(SyntaxError.prototype);
 	  Object.assign(error, props, {
 	    name: 'SyntaxError'
 	  });
 	  Object.defineProperty(error, 'stack', {
-	    get() {
+	    get: function get() {
 	      return errorStack ? errorStack.replace(/^(.+\n){1,3}/, String(error) + '\n') : '';
 	    }
-
 	  });
 	  return error;
 	});
 
-	var error = ((message, input, source, line, column) => {
+	var error = (function (message, input, source, line, column) {
 	  throw createError({
 	    message: line ? message + '\n' + build(input, line, column) : message,
 	    rawMessage: message,
-	    source,
-	    line,
-	    column
+	    source: source,
+	    line: line,
+	    column: column
 	  });
 	});
 
 	var parseErrorTypes = {
-	  unexpectedEnd: () => 'Unexpected end of input',
-	  unexpectedToken: (token, ...position) => `Unexpected token <${token}> at ${position.filter(Boolean).join(':')}`
+	  unexpectedEnd: function unexpectedEnd() {
+	    return 'Unexpected end of input';
+	  },
+	  unexpectedToken: function unexpectedToken(token) {
+	    for (var _len = arguments.length, position = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      position[_key - 1] = arguments[_key];
+	    }
+
+	    return "Unexpected token <".concat(token, "> at ").concat(position.filter(Boolean).join(':'));
+	  }
 	};
 
 	var tokenizeErrorTypes = {
-	  unexpectedSymbol: (symbol, ...position) => `Unexpected symbol <${symbol}> at ${position.filter(Boolean).join(':')}`
+	  unexpectedSymbol: function unexpectedSymbol(symbol) {
+	    for (var _len = arguments.length, position = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      position[_key - 1] = arguments[_key];
+	    }
+
+	    return "Unexpected symbol <".concat(symbol, "> at ").concat(position.filter(Boolean).join(':'));
+	  }
 	};
 
-	const tokenTypes = {
+	var tokenTypes = {
 	  LEFT_BRACE: 0,
 	  // {
 	  RIGHT_BRACE: 1,
@@ -231,7 +246,7 @@
 	  NULL: 10 // null
 
 	};
-	const punctuatorTokensMap = {
+	var punctuatorTokensMap = {
 	  // Lexeme: Token
 	  '{': tokenTypes.LEFT_BRACE,
 	  '}': tokenTypes.RIGHT_BRACE,
@@ -240,18 +255,18 @@
 	  ':': tokenTypes.COLON,
 	  ',': tokenTypes.COMMA
 	};
-	const keywordTokensMap = {
+	var keywordTokensMap = {
 	  // Lexeme: Token
 	  'true': tokenTypes.TRUE,
 	  'false': tokenTypes.FALSE,
 	  'null': tokenTypes.NULL
 	};
-	const stringStates = {
+	var stringStates = {
 	  _START_: 0,
 	  START_QUOTE_OR_CHAR: 1,
 	  ESCAPE: 2
 	};
-	const escapes = {
+	var escapes = {
 	  '"': 0,
 	  // Quotation mask
 	  '\\': 1,
@@ -271,7 +286,7 @@
 	  'u': 8 // 4 hexadecimal digits
 
 	};
-	const numberStates = {
+	var numberStates = {
 	  _START_: 0,
 	  MINUS: 1,
 	  ZERO: 2,
@@ -300,7 +315,7 @@
 
 
 	function parseWhitespace(input, index, line, column) {
-	  const char = input.charAt(index);
+	  var char = input.charAt(index);
 
 	  if (char === '\r') {
 	    // CR (Unix)
@@ -325,19 +340,19 @@
 	  }
 
 	  return {
-	    index,
-	    line,
-	    column
+	    index: index,
+	    line: line,
+	    column: column
 	  };
 	}
 
 	function parseChar(input, index, line, column) {
-	  const char = input.charAt(index);
+	  var char = input.charAt(index);
 
 	  if (char in punctuatorTokensMap) {
 	    return {
 	      type: punctuatorTokensMap[char],
-	      line,
+	      line: line,
 	      column: column + 1,
 	      index: index + 1,
 	      value: null
@@ -348,11 +363,11 @@
 	}
 
 	function parseKeyword(input, index, line, column) {
-	  for (const name in keywordTokensMap) {
+	  for (var name in keywordTokensMap) {
 	    if (keywordTokensMap.hasOwnProperty(name) && input.substr(index, name.length) === name) {
 	      return {
 	        type: keywordTokensMap[name],
-	        line,
+	        line: line,
 	        column: column + name.length,
 	        index: index + name.length,
 	        value: name
@@ -364,11 +379,11 @@
 	}
 
 	function parseString(input, index, line, column) {
-	  const startIndex = index;
-	  let state = stringStates._START_;
+	  var startIndex = index;
+	  var state = stringStates._START_;
 
 	  while (index < input.length) {
-	    const char = input.charAt(index);
+	    var char = input.charAt(index);
 
 	    switch (state) {
 	      case stringStates._START_:
@@ -392,9 +407,9 @@
 	            index++;
 	            return {
 	              type: tokenTypes.STRING,
-	              line,
+	              line: line,
 	              column: column + index - startIndex,
-	              index,
+	              index: index,
 	              value: input.slice(startIndex, index)
 	            };
 	          } else {
@@ -410,8 +425,8 @@
 	            index++;
 
 	            if (char === 'u') {
-	              for (let i = 0; i < 4; i++) {
-	                const curChar = input.charAt(index);
+	              for (var i = 0; i < 4; i++) {
+	                var curChar = input.charAt(index);
 
 	                if (curChar && isHex(curChar)) {
 	                  index++;
@@ -433,12 +448,12 @@
 	}
 
 	function parseNumber(input, index, line, column) {
-	  const startIndex = index;
-	  let passedValueIndex = index;
-	  let state = numberStates._START_;
+	  var startIndex = index;
+	  var passedValueIndex = index;
+	  var state = numberStates._START_;
 
 	  iterator: while (index < input.length) {
-	    const char = input.charAt(index);
+	    var char = input.charAt(index);
 
 	    switch (state) {
 	      case numberStates._START_:
@@ -558,7 +573,7 @@
 	  if (passedValueIndex > 0) {
 	    return {
 	      type: tokenTypes.NUMBER,
-	      line,
+	      line: line,
 	      column: column + passedValueIndex - startIndex,
 	      index: passedValueIndex,
 	      value: input.slice(startIndex, passedValueIndex)
@@ -569,19 +584,19 @@
 	}
 
 	function tokenize(input, settings) {
-	  const defaultSettings = {
+	  var defaultSettings = {
 	    loc: true,
 	    source: null
 	  };
 	  settings = Object.assign({}, defaultSettings, settings);
-	  let line = 1;
-	  let column = 1;
-	  let index = 0;
-	  const tokens = [];
+	  var line = 1;
+	  var column = 1;
+	  var index = 0;
+	  var tokens = [];
 
 	  while (index < input.length) {
-	    const args = [input, index, line, column];
-	    const whitespace = parseWhitespace(...args);
+	    var args = [input, index, line, column];
+	    var whitespace = parseWhitespace.apply(void 0, args);
 
 	    if (whitespace) {
 	      index = whitespace.index;
@@ -590,10 +605,10 @@
 	      continue;
 	    }
 
-	    const matched = parseChar(...args) || parseKeyword(...args) || parseString(...args) || parseNumber(...args);
+	    var matched = parseChar.apply(void 0, args) || parseKeyword.apply(void 0, args) || parseString.apply(void 0, args) || parseNumber.apply(void 0, args);
 
 	    if (matched) {
-	      const token = {
+	      var token = {
 	        type: matched.type,
 	        value: matched.value,
 	        loc: location(line, column, index, matched.line, matched.column, matched.index, settings.source)
@@ -610,30 +625,30 @@
 	  return tokens;
 	}
 
-	const objectStates = {
+	var objectStates = {
 	  _START_: 0,
 	  OPEN_OBJECT: 1,
 	  PROPERTY: 2,
 	  COMMA: 3
 	};
-	const propertyStates = {
+	var propertyStates = {
 	  _START_: 0,
 	  KEY: 1,
 	  COLON: 2
 	};
-	const arrayStates = {
+	var arrayStates = {
 	  _START_: 0,
 	  OPEN_ARRAY: 1,
 	  VALUE: 2,
 	  COMMA: 3
 	};
-	const defaultSettings = {
+	var defaultSettings = {
 	  loc: true,
 	  source: null
 	};
 
 	function errorEof(input, tokenList, settings) {
-	  const loc = tokenList.length > 0 ? tokenList[tokenList.length - 1].loc.end : {
+	  var loc = tokenList.length > 0 ? tokenList[tokenList.length - 1].loc.end : {
 	    line: 1,
 	    column: 1
 	  };
@@ -643,16 +658,16 @@
 
 
 	function parseHexEscape(hexCode) {
-	  let charCode = 0;
+	  var charCode = 0;
 
-	  for (let i = 0; i < 4; i++) {
+	  for (var i = 0; i < 4; i++) {
 	    charCode = charCode * 16 + parseInt(hexCode[i], 16);
 	  }
 
 	  return String.fromCharCode(charCode);
 	}
 
-	const escapes$1 = {
+	var escapes$1 = {
 	  'b': '\b',
 	  // Backspace
 	  'f': '\f',
@@ -664,18 +679,18 @@
 	  't': '\t' // Horizontal tab
 
 	};
-	const passEscapes = ['"', '\\', '/'];
+	var passEscapes = ['"', '\\', '/'];
 	/** @param {string} string */
 
 	function parseString$1(string) {
-	  let result = '';
+	  var result = '';
 
-	  for (let i = 0; i < string.length; i++) {
-	    const char = string.charAt(i);
+	  for (var i = 0; i < string.length; i++) {
+	    var char = string.charAt(i);
 
 	    if (char === '\\') {
 	      i++;
-	      const nextChar = string.charAt(i);
+	      var nextChar = string.charAt(i);
 
 	      if (nextChar === 'u') {
 	        result += parseHexEscape(string.substr(i + 1, 4));
@@ -697,15 +712,15 @@
 
 	function parseObject(input, tokenList, index, settings) {
 	  // object: LEFT_BRACE (property (COMMA property)*)? RIGHT_BRACE
-	  let startToken;
-	  const object = {
+	  var startToken;
+	  var object = {
 	    type: 'Object',
 	    children: []
 	  };
-	  let state = objectStates._START_;
+	  var state = objectStates._START_;
 
 	  while (index < tokenList.length) {
-	    const token = tokenList[index];
+	    var token = tokenList[index];
 
 	    switch (state) {
 	      case objectStates._START_:
@@ -733,7 +748,7 @@
 	              index: index + 1
 	            };
 	          } else {
-	            const property = parseProperty(input, tokenList, index, settings);
+	            var property = parseProperty(input, tokenList, index, settings);
 	            object.children.push(property.value);
 	            state = objectStates.PROPERTY;
 	            index = property.index;
@@ -765,11 +780,11 @@
 
 	      case objectStates.COMMA:
 	        {
-	          const property = parseProperty(input, tokenList, index, settings);
+	          var _property = parseProperty(input, tokenList, index, settings);
 
-	          if (property) {
-	            index = property.index;
-	            object.children.push(property.value);
+	          if (_property) {
+	            index = _property.index;
+	            object.children.push(_property.value);
 	            state = objectStates.PROPERTY;
 	          } else {
 	            error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
@@ -785,22 +800,22 @@
 
 	function parseProperty(input, tokenList, index, settings) {
 	  // property: STRING COLON value
-	  let startToken;
-	  const property = {
+	  var startToken;
+	  var property = {
 	    type: 'Property',
 	    key: null,
 	    value: null
 	  };
-	  let state = propertyStates._START_;
+	  var state = propertyStates._START_;
 
 	  while (index < tokenList.length) {
-	    const token = tokenList[index];
+	    var token = tokenList[index];
 
 	    switch (state) {
 	      case propertyStates._START_:
 	        {
 	          if (token.type === tokenTypes.STRING) {
-	            const key = {
+	            var key = {
 	              type: 'Identifier',
 	              value: parseString$1(input.slice(token.loc.start.offset + 1, token.loc.end.offset - 1)),
 	              raw: token.value
@@ -835,7 +850,7 @@
 
 	      case propertyStates.COLON:
 	        {
-	          const value = parseValue(input, tokenList, index, settings);
+	          var value = parseValue(input, tokenList, index, settings);
 	          property.value = value.value;
 
 	          if (settings.loc) {
@@ -853,13 +868,13 @@
 
 	function parseArray(input, tokenList, index, settings) {
 	  // array: LEFT_BRACKET (value (COMMA value)*)? RIGHT_BRACKET
-	  let startToken;
-	  const array = {
+	  var startToken;
+	  var array = {
 	    type: 'Array',
 	    children: []
 	  };
-	  let state = arrayStates._START_;
-	  let token;
+	  var state = arrayStates._START_;
+	  var token;
 
 	  while (index < tokenList.length) {
 	    token = tokenList[index];
@@ -890,7 +905,7 @@
 	              index: index + 1
 	            };
 	          } else {
-	            const value = parseValue(input, tokenList, index, settings);
+	            var value = parseValue(input, tokenList, index, settings);
 	            index = value.index;
 	            array.children.push(value.value);
 	            state = arrayStates.VALUE;
@@ -922,9 +937,10 @@
 
 	      case arrayStates.COMMA:
 	        {
-	          const value = parseValue(input, tokenList, index, settings);
-	          index = value.index;
-	          array.children.push(value.value);
+	          var _value = parseValue(input, tokenList, index, settings);
+
+	          index = _value.index;
+	          array.children.push(_value.value);
 	          state = arrayStates.VALUE;
 	          break;
 	        }
@@ -936,8 +952,8 @@
 
 	function parseLiteral(input, tokenList, index, settings) {
 	  // literal: STRING | NUMBER | TRUE | FALSE | NULL
-	  const token = tokenList[index];
-	  let value = null;
+	  var token = tokenList[index];
+	  var value = null;
 
 	  switch (token.type) {
 	    case tokenTypes.STRING:
@@ -976,9 +992,9 @@
 	      }
 	  }
 
-	  const literal = {
+	  var literal = {
 	    type: 'Literal',
-	    value,
+	    value: value,
 	    raw: token.value
 	  };
 
@@ -994,8 +1010,8 @@
 
 	function parseValue(input, tokenList, index, settings) {
 	  // value: literal | object | array
-	  const token = tokenList[index];
-	  const value = parseLiteral(...arguments) || parseObject(...arguments) || parseArray(...arguments);
+	  var token = tokenList[index];
+	  var value = parseLiteral.apply(void 0, arguments) || parseObject.apply(void 0, arguments) || parseArray.apply(void 0, arguments);
 
 	  if (value) {
 	    return value;
@@ -1003,15 +1019,15 @@
 	    error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	  }
 	}
-	var parse = ((input, settings) => {
+	var parse = (function (input, settings) {
 	  settings = Object.assign({}, defaultSettings, settings);
-	  const tokenList = tokenize(input, settings);
+	  var tokenList = tokenize(input, settings);
 
 	  if (tokenList.length === 0) {
 	    errorEof(input, tokenList, settings);
 	  }
 
-	  const value = parseValue(input, tokenList, 0, settings);
+	  var value = parseValue(input, tokenList, 0, settings);
 
 	  if (value.index === tokenList.length) {
 	    return {
@@ -1020,12 +1036,12 @@
 	    };
 	  }
 
-	  const token = tokenList[value.index];
+	  var token = tokenList[value.index];
 	  error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	});
 
-	const parseTokens = (input, tokenList, settings) => {
-	  const defaultSettings = {
+	var parseTokens = function parseTokens(input, tokenList, settings) {
+	  var defaultSettings = {
 	    loc: true,
 	    source: null
 	  };
@@ -1035,18 +1051,18 @@
 	    errorEof$1(input, tokenList, settings);
 	  }
 
-	  const value = parseValue(input, tokenList, 0, settings);
+	  var value = parseValue(input, tokenList, 0, settings);
 
 	  if (value.index === tokenList.length) {
 	    return value.value;
 	  }
 
-	  const token = tokenList[value.index];
+	  var token = tokenList[value.index];
 	  error(parseErrorTypes.unexpectedToken(input.substring(token.loc.start.offset, token.loc.end.offset), settings.source, token.loc.start.line, token.loc.start.column), input, settings.source, token.loc.start.line, token.loc.start.column);
 	};
 
 	function errorEof$1(input, tokenList, settings) {
-	  const loc = tokenList.length > 0 ? tokenList[tokenList.length - 1].loc.end : {
+	  var loc = tokenList.length > 0 ? tokenList[tokenList.length - 1].loc.end : {
 	    line: 1,
 	    column: 1
 	  };
